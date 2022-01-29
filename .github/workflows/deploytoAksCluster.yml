@@ -1,0 +1,51 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: rsongtrialowneracr01.azurecr.io
+        username: ${{ secrets.acr_rsongtrialowneracr01_username }}
+        password: ${{ secrets.acr_rsongtrialowneracr01_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/src/PublicApi" -f  "src/PublicApi/Dockerfile" -t rsongtrialowneracr01.azurecr.io/rsongtrialaks:${{ github.sha }} --label dockerfile-path=src/PublicApi/Dockerfile
+        docker push rsongtrialowneracr01.azurecr.io/rsongtrialaks:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_rsongtrialaks_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep rsong-trial-aksa11b | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace rsong-trial-aksa11b`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: rsong-trial-aksa11b
+        container-registry-url: rsongtrialowneracr01.azurecr.io
+        container-registry-username: ${{ secrets.acr_rsongtrialowneracr01_username }}
+        container-registry-password: ${{ secrets.acr_rsongtrialowneracr01_password }}
+        secret-name: rsongtrialakdockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: rsong-trial-aksa11b
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+          manifests/ingress.yml
+        images: |
+          rsongtrialowneracr01.azurecr.io/rsongtrialaks:${{ github.sha }}
+        imagepullsecrets: |
+          rsongtrialakdockerauth
