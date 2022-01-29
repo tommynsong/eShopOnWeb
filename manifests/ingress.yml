@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: "rsongtrialaks-2bd3"
+    labels:
+        app: "rsongtrialaks-2bd3"
+    annotations:
+        kubernetes.io/ingress.class: addon-http-application-routing
+spec:
+    rules:
+        - host: rsong-trial-aksa11b-rsongtrialaks-2bd3.23326da7a8f845c3ba76.eastus.aksapp.io
+          http:
+            paths:
+            - path: /
+              backend:
+                serviceName: "rsongtrialaks-2bd3"
+                servicePort: 80
