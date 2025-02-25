@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.eShopWeb.Web.Services;
 using Microsoft.eShopWeb.Web.ViewModels;
 
@@ -14,7 +13,7 @@ public class IndexModel : PageModel
         _catalogViewModelService = catalogViewModelService;
     }
 
-    public CatalogIndexViewModel CatalogModel { get; set; } = new CatalogIndexViewModel();
+    public required CatalogIndexViewModel CatalogModel { get; set; } = new CatalogIndexViewModel();
 
     public async Task OnGet(CatalogIndexViewModel catalogModel, int? pageId)
     {
